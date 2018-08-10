@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+	#experiment {
+	    width: 60%;
+	    margin: 0 auto;
+	}
+
+	#message_outer {
+		background-color:black;
+	}
+
+	#messages {
+		font-size: 30px;
+		background-color:black;
+		color:white;
+		text-align : left;
+	    margin-left: 50px;
+	}
+	</style>
+	<!--utility libraries-->
+	<script src="./js/jquery.js"></script>
+	<script src="./js/tiny-pubsub.js"></script>
+	<script src="./js/raphael.js"></script>
+	<script src="./js/underscore.js"></script>
+
+	<!--experiment libraries-->
+	<script src="./js/gridworld_painter.js"></script>
+	<script src="./js/clientMDP.js"></script>
+
+	<script src="./js/demos.js"></script>
+
+	<script type='text/javascript'>
+	"use strict"
+	var getURLParams = function(url) {
+		var params_string = url.split('?');
+		if (params_string.length == 1) {
+			return {}
+		}
+		params_string = params_string[1];
+		params_string = params_string.split('&');
+		var params = {};
+		for (var i = 0; i < params_string.length; i++){
+			var param = params_string[i].split('=');
+			params[param[0]] = param[1];
+		}
+		return params
+	}
+
+	var task_params = getURLParams(window.location.href);
+	var workerid = task_params['workerid'];
+	var end_survey = "SV_bqFjNhjJDHL0OVf";
+	var play_human = typeof task_params['play_human'] !== 'undefined' ? play_human : 'no';
+
+	//http://elzar.cs.brown.edu/multi_grid_games/index.html?t_id=<TURKID>&exp_name=exp_1&redirect=<REDIRECT>&SID=<SID>
+
+	var redirect_link = "http://elzar.cs.brown.edu/mgg_vf/index.html?exp_name=Court_DI_"+task_params['cond']+"&grid="+task_params['cond']+"&t_id="+workerid+"&redirect=https://brown.co1.qualtrics.com/SE/&SID="+end_survey;
+
+	$(document).ready(function () {
+		var blocks = [demo0, demo1, demo2, demo3, demo4, demo5, endDemo];
+		var curBlock;
+
+		var startNextBlock = function (event) {
+			if (event.which == 13) {
+				$(document).unbind('keydown.continue');
+				$.publish('killtimers');
+				if (typeof curBlock !== 'undefined') {
+					curBlock.end();
+				}
+				if (blocks.length > 0) {
+					curBlock = blocks.shift();
+					curBlock.start();
+				}
+				setTimeout(function () {
+					$(document).bind('keydown.continue', startNextBlock);
+				}, curBlock.MIN_CONTINUE_TIME)
+			}
+		}
+
+		$(document).bind('keydown.continue', startNextBlock);
+
+		var closeAlert = function(){
+			return 'Please do not close or reload this window before completing the task. Doing so will invalidate your responses!';
+		};
+
+		$(window).bind('beforeunload', closeAlert);
+
+	});
+	</script>
+</head>
+<body>
+	<div id = 'experiment'>
+		<div id='message_outer'>
+			<div id='messages'>
+				<br> 
+			Press enter to start<br>
+			<br> 
+			</div>
+		</div>
+		<br>
+		<div id="task_display"></div>
+	</div>
+</body>
+</html>
